@@ -8,7 +8,9 @@ if($msol_session -eq $null) {
     $msol_session = Connect-MsolService -Credential $msolcred
 }
 
-#MSOnline\Get-MsolPasswordPolicy -DomainName lfdj.com
+$domain = $msolcred.UserName.Split("@")[1]
+$policy = Get-MsolPasswordPolicy -DomainName $domain
+$policy | fl
 
 
 #Get All Licensed Users
