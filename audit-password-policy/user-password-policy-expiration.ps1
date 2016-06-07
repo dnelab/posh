@@ -8,8 +8,7 @@ if($msol_session -eq $null) {
     $msol_session = Connect-MsolService -Credential $msolcred
 }
 
-
-Get-MsolPasswordPolicy -DomainName acme.com
+Get-MsolPasswordPolicy -DomainName lfdj.com
 
 #Get All Licensed Users
 $users = Get-MsolUser -All | Where-Object {$_.isLicensed -eq $true}
