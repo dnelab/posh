@@ -31,8 +31,14 @@ foreach ($user in $users) {
     write-output ("Line #$i;$($user.UserPrincipalName);$($user.LastPasswordChangeTimestamp);$($user.PasswordNeverExpires);$($user.StrongPasswordRequired);$($user.ValidationStatus);$($user.BlockCredential)")
 
     # detect blocked account
+    if($user.BlockCredential) {
+        Write-Host -ForegroundColor Red $user.UserPrincipalName " account is locked"
+    }
 
     # detect no password expires on user
+    if($user.PasswordNeverExpires -ne $false) {
+        Write-Host -ForegroundColor Red $user.UserPrincipalName " has no expiration date"
+    }
     
     # very old password > 90j
 
