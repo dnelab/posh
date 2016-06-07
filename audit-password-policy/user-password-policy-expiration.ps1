@@ -29,5 +29,12 @@ write-output ("item;UserPrincipalName;LastPasswordChangeTimestamp;PasswordNeverE
 foreach ($user in $users) {
     $i++
     write-output ("Line #$i;$($user.UserPrincipalName);$($user.LastPasswordChangeTimestamp);$($user.PasswordNeverExpires);$($user.StrongPasswordRequired);$($user.ValidationStatus);$($user.BlockCredential)")
+
+    # detect blocked account
+
+    # detect no password expires on user
+    
+    # very old password > 90j
+
 }
 $users| Select-Object UserPrincipalName,LastPasswordChangeTimestamp,PasswordNeverExpires,StrongPasswordRequired,ValidationStatus,BlockCredential | Out-GridView
