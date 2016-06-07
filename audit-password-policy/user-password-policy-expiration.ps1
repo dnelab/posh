@@ -11,12 +11,20 @@ if($msol_session -eq $null) {
 Get-MsolPasswordPolicy -DomainName lfdj.com
 
 #Get All Licensed Users
+$i = 0
 $users = Get-MsolUser -All | Where-Object {$_.isLicensed -eq $true}
 foreach ($user in $users) {
-	PasswordNeverExpires
-	StrongPasswordRequired
-	StrongPasswordRequired
+    $i++
+	#
+	#write-output "Line #$i OK1:$($UPN): MAJ mdp policy + env : Resultat ($?)"
+	#PasswordNeverExpires
+	#StrongPasswordRequired
+	#StrongPasswordRequired
+    
+
+    write-output ("Line #$i : $($user.UserPrincipalName) ")
 }
+$user | fl
 
 #write-output "Line #$i OK1:$($UPN): MAJ mdp policy + env : Resultat ($?)"
 #write-output ("Line #$i OK2:password maj $($UPN) = $x : Resultat ($?)")
