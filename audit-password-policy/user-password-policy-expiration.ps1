@@ -8,7 +8,7 @@ if($msol_session -eq $null) {
     $msol_session = Connect-MsolService -Credential $msolcred
 }
 
-Get-MsolPasswordPolicy -DomainName lfdj.com
+Get-MsolPasswordPolicy -DomainName acme.com
 
 #Get All Licensed Users
 $i = 0
@@ -20,9 +20,9 @@ foreach ($user in $users) {
 	#PasswordNeverExpires
 	#StrongPasswordRequired
 	#StrongPasswordRequired
-    
+    $($user.PasswordNeverExpires)
 
-    write-output ("Line #$i : $($user.UserPrincipalName) ")
+    write-output ("Line #$i : $($user.UserPrincipalName);$($user.LastPasswordChangeTimestamp);$($user.)")
 }
 $user | fl
 
