@@ -8,10 +8,18 @@ if($msol_session -eq $null) {
     $msol_session = Connect-MsolService -Credential $msolcred
 }
 
+#### domain policy ####
 $domain = $msolcred.UserName.Split("@")[1]
 $policy = Get-MsolPasswordPolicy -DomainName $domain
-$policy | fl
+$warn = if($policy.NotificationDays -eq $null) {14} else {$policy.NotificationDays}
+$old = if($policy.ValidityPeriod -eq $null) {90} else {$policy.ValidityPeriod}
 
+write-host "Tenant password policy is :"
+write-host " - change password untill is $old days old"
+write-host " - warn user $warn days before password expiration"
+write-host ""
+
+#### user policy ####
 
 #Get All Licensed Users
 $i = 0
@@ -22,3 +30,4 @@ foreach ($user in $users) {
     $i++
     write-output ("Line #$i;$($user.UserPrincipalName);$($user.LastPasswordChangeTimestamp);$($user.PasswordNeverExpires);$($user.StrongPasswordRequired);$($user.ValidationStatus);$($user.BlockCredential)")
 }
+$users| Select-Object UserPrincipalName,LastPasswordChangeTimestamp,PasswordNeverExpires,StrongPasswordRequired,ValidationStatus,BlockCredential | Out-GridView
