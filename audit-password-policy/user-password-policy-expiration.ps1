@@ -19,9 +19,16 @@ $warn = if($policy.NotificationDays -eq $null) {14} else {$policy.NotificationDa
 $old = if($policy.ValidityPeriod -eq $null) {90} else {$policy.ValidityPeriod}
 
 write-host "Tenant password policy is :"
-write-host " - change password untill is $old days old"
-write-host " - warn user $warn days before password expiration"
+if($old -eq 2147483647) {
+    write-host " - no change password"
+} else {
+    write-host " - change password untill is $old days old"
+    write-host " - warn user $warn days before password expiration"
+}
 write-host ""
+
+## if ValidityPeriod isn't rational , we tamper it
+$old = [Math]::Min($old, 3650)
 
 #### logging ####
 # The Output will be written to this file in the current working directory
