@@ -1,12 +1,20 @@
-if($msolcred -eq $null) {
-	$msolcred = get-credential
+try
+{
+    Get-MsolDomain -ErrorAction Stop > $null
+}
+catch 
+{
+    if($msolcred -eq $null) {
+	    $msolcred = get-credential
+    }
+
+    if($msol_session -eq $null) {
+        write-host "Connecting to office 365..."
+        Import-Module MSOnline
+        $msol_session = Connect-MsolService -Credential $msolcred
+    }
 }
 
-if($msol_session -eq $null) {
-    write-host "Connecting to office 365..."
-    Import-Module MSOnline
-    $msol_session = Connect-MsolService -Credential $msolcred
-}
 
 #### domain policy ####
 $domain = $msolcred.UserName.Split("@")[1]
@@ -25,22 +33,27 @@ write-host ""
 $i = 0
 $users = Get-MsolUser -All | Where-Object {$_.isLicensed -eq $true}
 # header
-write-output ("item;UserPrincipalName;LastPasswordChangeTimestamp;PasswordNeverExpires;StrongPasswordRequired;ValidationStatus;BlockCredential")
+#write-output ("item;UserPrincipalName;LastPasswordChangeTimestamp;PasswordNeverExpires;StrongPasswordRequired;ValidationStatus;BlockCredential;PasswordAge")
 foreach ($user in $users) {
     $i++
-    write-output ("Line #$i;$($user.UserPrincipalName);$($user.LastPasswordChangeTimestamp);$($user.PasswordNeverExpires);$($user.StrongPasswordRequired);$($user.ValidationStatus);$($user.BlockCredential)")
+    $age =  ((Get-Date) - ($user.LastPasswordChangeTimestamp)).TotalDays
+    #write-output ("Line #$i;$($user.UserPrincipalName);$($user.LastPasswordChangeTimestamp);$($user.PasswordNeverExpires);$($user.StrongPasswordRequired);$($user.ValidationStatus);$($user.BlockCredential);$age")
 
     # detect blocked account
     if($user.BlockCredential) {
-        Write-Host -ForegroundColor Red $user.UserPrincipalName " account is locked"
+        Write-Host -ForegroundColor Red $user.UserPrincipalName "account is locked"
     }
 
     # detect no password expires on user
     if($user.PasswordNeverExpires -ne $false) {
-        Write-Host -ForegroundColor Red $user.UserPrincipalName " has no expiration date"
+        Write-Host -ForegroundColor Red $user.UserPrincipalName "account has no expiration date"
     }
-    
-    # very old password > 90j
 
+    # very old password > 90j
+    if(($user.LastPasswordChangeTimestamp) -lt (get-date).AddDays(-$old)) {
+        Write-Host -ForegroundColor Red $user.UserPrincipalName "password is older than allowed policy ($age/$old j)"
+    } elseif (($user.LastPasswordChangeTimestamp) -lt (get-date).AddDays(-$old+$warn)) {
+        Write-Host -ForegroundColor DarkYellow $user.UserPrincipalName "password will expires soon ($age/$old j)"
+    }
 }
 $users| Select-Object UserPrincipalName,LastPasswordChangeTimestamp,PasswordNeverExpires,StrongPasswordRequired,ValidationStatus,BlockCredential | Out-GridView
