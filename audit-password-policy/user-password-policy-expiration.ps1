@@ -1,9 +1,6 @@
-try
-{
+try {
     Get-MsolDomain -ErrorAction Stop > $null
-}
-catch 
-{
+} catch {
     if($msolcred -eq $null) {
 	    $msolcred = get-credential
     }
@@ -15,7 +12,6 @@ catch
     }
 }
 
-
 #### domain policy ####
 $domain = $msolcred.UserName.Split("@")[1]
 $policy = Get-MsolPasswordPolicy -DomainName $domain
@@ -26,6 +22,19 @@ write-host "Tenant password policy is :"
 write-host " - change password untill is $old days old"
 write-host " - warn user $warn days before password expiration"
 write-host ""
+
+#### logging ####
+# The Output will be written to this file in the current working directory
+$LogFile = "$domain-password-policy-"+$(Get-Date -UFormat "%Y%m%d@%H%M")+".csv"
+$coll_pass = @()
+$pass = @{}
+$pass.Add("UserPrincipalName", "n/a")
+$pass.Add("LastPasswordChangeTimestamp", "n/a")
+$pass.Add("PasswordNeverExpires", "n/a")
+$pass.Add("StrongPasswordRequired", "n/a")
+$pass.Add("ValidationStatus", "n/a")
+$pass.Add("BlockCredential", "n/a")
+$pass.Add("PasswordAge", "n/a")
 
 #### user policy ####
 
@@ -55,5 +64,22 @@ foreach ($user in $users) {
     } elseif (($user.LastPasswordChangeTimestamp) -lt (get-date).AddDays(-$old+$warn)) {
         Write-Host -ForegroundColor DarkYellow $user.UserPrincipalName "password will expires soon ($age/$old j)"
     }
+
+    $aPass = $pass.Clone()
+    $aPass.UserPrincipalName = $user.UserPrincipalName
+    $aPass.LastPasswordChangeTimestamp = $user.LastPasswordChangeTimestamp
+    $aPass.PasswordNeverExpires= $user.PasswordNeverExpires
+    $aPass.StrongPasswordRequired = $user.StrongPasswordRequired
+    $aPass.ValidationStatus = $user.ValidationStatus
+    $aPass.BlockCredential = $user.BlockCredential
+    $aPass.PasswordAge = $age
+    $coll_pass += New-Object PSObject -Property $aPass      
 }
+
+write-host ("Exporting data to csv... ")
+$coll_pass | Export-Csv -Path $LogFile -Encoding UTF8
+
+write-host " "
+write-host ("Script Completed.  Results available in " + $LogFile)
+
 $users| Select-Object UserPrincipalName,LastPasswordChangeTimestamp,PasswordNeverExpires,StrongPasswordRequired,ValidationStatus,BlockCredential | Out-GridView
