@@ -12,7 +12,8 @@ try {
     }
 }
 
-$top5 = (Get-MsolUser -All | Where-Object {$_.isLicensed -eq $true} | Sort-Object LastPasswordChangeTimeStamp | Select-Object -First 5 DisplayName,LastPasswordChangeTimeStamp)
+$nb = 10
+$top5 = (Get-MsolUser -All | Where-Object {$_.isLicensed -eq $true} | Sort-Object LastPasswordChangeTimeStamp | Select-Object -First $nb DisplayName,LastPasswordChangeTimeStamp,PasswordNeverExpires)
 
 
 $now = (get-date)
@@ -22,8 +23,5 @@ foreach($item in $top5) {
     $item | Add-Member PasswordAge $age.TotalDays
 }
 
-Write-Host "TOP 5 oldest password" -ForegroundColor DarkYellow
+Write-Host "TOP $nb oldest password" -ForegroundColor DarkYellow
 $top5
-
-
-
