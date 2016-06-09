@@ -61,13 +61,15 @@ foreach ($user in $users) {
     }
 
     # detect no password expires on user
-    if($user.PasswordNeverExpires -ne $false) {
-        Write-Host -ForegroundColor Red $user.UserPrincipalName "account has no expiration date"
+    if($user.PasswordNeverExpires -eq $True) {
+        Write-Host -ForegroundColor Green $user.UserPrincipalName "account has no expiration date"
     }
 
     # very old password > 90j
     if(($user.LastPasswordChangeTimestamp) -lt (get-date).AddDays(-$old)) {
-        Write-Host -ForegroundColor Red $user.UserPrincipalName "password is older than allowed policy ($age/$old j)"
+        $color = if($user.PasswordNeverExpires) { "Yellow" } else { "Red" }
+        $block = if($user.PasswordNeverExpires) { "non-blocking" } else { "blocking" }
+        Write-Host -ForegroundColor $color $user.UserPrincipalName "password is older than allowed policy - $block ($age/$old j)"
     } elseif (($user.LastPasswordChangeTimestamp) -lt (get-date).AddDays(-$old+$warn)) {
         Write-Host -ForegroundColor DarkYellow $user.UserPrincipalName "password will expires soon ($age/$old j)"
     }
