@@ -35,7 +35,7 @@ Write-Host " - global password expiration policy : $expires"
 Write-Host " - password is $age days old"
 Write-Host " - account $blocked blocked"
 if($user.PasswordNeverExpires) {
-    Write-Host " - password never expires flag is set"
+    Write-Host " - password never expires flag is set" -ForegroundColor DarkYellow
 }
 Write-Host " - password expires in $remaining days"
 Write-Host " - user will be warned in $warn_remaining days"
